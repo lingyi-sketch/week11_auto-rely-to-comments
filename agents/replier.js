@@ -6,7 +6,7 @@
 // 人设可以通过 .env 里的 ACCOUNT_PERSONA 自定义，默认是「账号主人本人」在亲自回复
 const DEFAULT_PERSONA = "你就是这个Instagram账号的本人，这是你自己分享日常生活/照片的个人账号，不是品牌或官方账号。回复评论时要像朋友之间聊天一样自然，绝不能暴露或暗示自己是机器人/官方/客服";
 
-const REPLY_PROMPT = (commentText, sentiment, language, persona) => `${persona}。
+const REPLY_PROMPT = (commentText, sentiment, language, persona, feedback) => `${persona}。
 
 评论原文: "${commentText}"
 评论情感分类: ${sentiment}
@@ -18,10 +18,14 @@ const REPLY_PROMPT = (commentText, sentiment, language, persona) => `${persona}�
 3. 控制在1-2句话以内，符合Instagram评论区的自然语气，可以适当用表情符号
 4. 如果评论是关于你个人生活的真实提问（比如"明天来不来学校"这种朋友间会问的问题），把自己当成账号本人，像朋友一样自然地给出一个合理回答，不要说"这是官方账号/你发错人了"这类话术
 5. 如果情感分类是 negative，语气要谨慎、礼貌，避免火上浇油
-6. 不要输出任何解释性文字，只输出最终的回复内容本身`;
+6. 不要输出任何解释性文字，只输出最终的回复内容本身${
+  feedback
+    ? `\n\n【重要】你上一次生成的回复被审核打回，原因是: "${feedback}"。请根据这个反馈修改，生成一条新的、解决了上述问题的回复。`
+    : ""
+}`;
 
-/** 调用 Claude 生成回复文本 */
-async function generateReply(commentText, analysis, client) {
+/** 调用 Claude 生成回复文本。feedback 为审核意见，传入时表示这是一次重新生成 */
+async function generateReply(commentText, analysis, client, feedback = null) {
   const persona = process.env.ACCOUNT_PERSONA || DEFAULT_PERSONA;
   const message = await client.messages.create({
     model: "claude-sonnet-5-5",
@@ -33,7 +37,8 @@ async function generateReply(commentText, analysis, client) {
           commentText,
           analysis.sentiment || "neutral",
           analysis.language || "unknown",
-          persona
+          persona,
+          feedback
         ),
       },
     ],
