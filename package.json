@@ -1,0 +1,15 @@
+{
+  "name": "sns-comment-automation",
+  "version": "1.0.0",
+  "description": "Instagram comment auto-reply pipeline built with a multi-agent architecture",
+  "main": "main.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node main.js",
+    "loop": "node main.js --loop"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.0",
+    "dotenv": "^16.4.5"
+  }
+}
